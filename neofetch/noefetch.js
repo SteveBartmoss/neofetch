@@ -3,13 +3,12 @@
 export class NeoFetch{
 
     static #buildUrl(url,params){
-        let newUrl = url+'?'
+        
+        const searchParams = new URLSearchParams()
 
-        params.forEach(element => {
-            newUrl = newUrl+`${element.key}=${element.value}&`
-        });
+        params.forEach(({key,value})=> searchParams.append(key,value))
 
-        return newUrl
+        return `${url}?${searchParams.toString()}`
     }
 
     static async get(url,params=[],options={}){
