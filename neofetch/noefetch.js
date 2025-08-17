@@ -40,6 +40,7 @@ export class NeoFetch{
 
             const response = await fetch(url,{
                 method: 'POST',
+                headers: {"Content-Type": "application/json",...options.headers},
                 body: JSON.stringify(body),
                 ...options
             })
@@ -65,6 +66,7 @@ export class NeoFetch{
 
             const response = await fetch(swapurl,{
                 method: 'PUT',
+                headers: {"Content-Type": "application/json",...options.headers},
                 body: JSON.stringify(body),
                 ...options
             }) 
@@ -91,6 +93,7 @@ export class NeoFetch{
 
             const response = await fetch(swapurl,{
                 method: 'PATCH',
+                headers: {"Content-Type": "application/json",...options.headers},
                 body: JSON.stringify(body),
                 ...options
             })
