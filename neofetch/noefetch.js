@@ -2,7 +2,7 @@
 
 export class NeoFetch{
 
-    static #buildUrl(url,params){
+    static #buildUrl(url,params=[]){
         
         const searchParams = new URLSearchParams()
 
@@ -11,125 +11,74 @@ export class NeoFetch{
         return `${url}?${searchParams.toString()}`
     }
 
-    static async get(url,params=[],options={}){
-
-        let swapurl=url
-        if(params.length>0){
-            swapurl=this.#buildUrl(url,params)
-        }
-
-        try{
-            const response = await fetch(swapurl,{
-                method: 'GET',
-                ...options
-            }) 
-
-            const data = await response.json()
-
-            return {data: data, response: response}
-
-        }catch(error){
-            console.error('error:',error)
-            throw error
-        }
-    }
-
-    static async post(url,body={},options={}){
-
-        try{
-
-            const response = await fetch(url,{
-                method: 'POST',
-                headers: {"Content-Type": "application/json",...options.headers},
-                body: JSON.stringify(body),
-                ...options
-            })
-
-            const data = await response.json()
-
-            return {data: data, response: response}
-
-        }catch(error){
-            console.error('error:',error)
-            throw error
+    static #buildOptions(method,headers,body,options){
+        
+        switch(method){
+            case "GET":
+            case "DELETE":
+                return{
+                    method,
+                    headers: {"Content-Type": "application/json", ...headers},
+                    ...options
+                }
+            case "POST":
+            case "PUT":
+            case "PATCH":
+                return{
+                    method,
+                    headers: {"Content-Type": "application/json", ...headers},
+                    body: body ? JSON.stringify(body) : undefined,
+                    ...options
+                }
+        
         }
     }
 
-    static async put(url,body={},params=[],options={}){
-        let swapurl=url
+    static async #buildRequest(method,url, {body,params,headers, ...options}){
+        const swapurl = this.#buildUrl(url,params)
 
-        if(params.length>0){
-            swapurl=this.#buildUrl(url,params)
-        }
+        const response = await fetch(swapurl,this.#buildOptions(method,headers,body,options))
+
+        let data 
 
         try{
-
-            const response = await fetch(swapurl,{
-                method: 'PUT',
-                headers: {"Content-Type": "application/json",...options.headers},
-                body: JSON.stringify(body),
-                ...options
-            }) 
-
-            const data = await response.json()
-
-            return {data: data, response: response}
-
-        }catch(error){
-            console.error('error:',error)
-            throw error
+            const contentType = response.headers.get("content-type") || ""
+            data = contentType.includes("application/json") ? await response.json() : await response.text()
+        } catch {
+            data = null
         }
+
+        return {data, response}
+
     }
 
-    static async patch(url,body={},params=[],options={}){
+    static async get(url,options={}){
 
-        let swapurl=url
+        return this.#buildRequest("GET",url,options)
 
-        if(params.length>0){
-            swapurl = this.#buildUrl(url,params)
-        }
-
-        try{
-
-            const response = await fetch(swapurl,{
-                method: 'PATCH',
-                headers: {"Content-Type": "application/json",...options.headers},
-                body: JSON.stringify(body),
-                ...options
-            })
-
-            const data = await response.json()
-
-            return {data: data, response: response}
-
-        }catch(error){
-            console.error('error:',error)
-            throw error
-        }
     }
 
-    static async delete(url,params=[],options={}){
+    static async post(url,options={}){
 
-        let swapurl=url
+        return this.#buildRequest("POST",url,options)
 
-        if(params.length>0){
-            swapurl= this.#buildUrl(url,params)
-        }
+    }
 
-        try{
+    static async put(url,options={}){
+        
+        return this.#buildRequest("PUT",url,options)
 
-            const response = await fetch(swapurl,{
-                method: 'DELETE',
-                ...options
-            })
+    }
 
-            const data = await response.json()
+    static async patch(url,options={}){
 
-            return {data: data, response: response}
+        return this.#buildRequest("PATCH",url,options)
 
-        }catch(error){
-            console.error('error:',error)
-            throw error
-        }
+    }
+
+    static async delete(url,options={}){
+
+        return this.#buildRequest("DELETE",url,options)
+
     }
 }
