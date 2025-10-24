@@ -47,20 +47,27 @@ export class NeoFetch{
 
     static async #buildRequest(method,url, {body,params,headers, ...options}){
         const swapurl = this.#buildUrl(url,params)
-
-        const response = await fetch(swapurl,this.#buildOptions(method,headers,body,options))
-
-        let data 
+        
+        let data, response
 
         try{
+            response = await fetch(swapurl,this.#buildOptions(method,headers,body,options))
+
             const contentType = response.headers.get("content-type") || ""
             data = contentType.includes("application/json") ? await response.json() : await response.text()
 
             if(!response.ok){
+
+                const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
+                error.status = response.status
+                error.data = data
+                error.url = swapurl
                
                 for(const interceptor of this.#errorInterceptors){
                     await interceptor(error)
                 }
+
+                throw error
 
             }
         } catch (err) {
@@ -70,14 +77,6 @@ export class NeoFetch{
             }
             data = null
             throw err
-        }
-
-        if(!response.ok){
-            const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
-            error.status = response.status
-            error.data = data
-            error.url = swapurl
-            throw error
         }
 
         return {data, response}
