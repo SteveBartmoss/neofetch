@@ -29,6 +29,16 @@ Neofetch.get(url,options)
 
 - options: Objeto que representa opciones adicionales que se quieren argrea a la peticion
 
+
+### Interceptores
+
+Se implemento el uso de interceptores para los errores al momento de realizar peticones http la forma de usarlo es la siguiente: 
+
+```js
+NeoFetch.interceptors.error.use((error) => {
+  console.error("Error global:", error.status, error.message)
+})
+```
 ### Manejo de errores
 
 Se implemento la respuesta de una exception, de esta manera se puede usar un bloque try catch para el manejo de errores, se puede implementar de la siguiente manera

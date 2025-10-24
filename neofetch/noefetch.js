@@ -2,6 +2,17 @@
 
 export class NeoFetch{
 
+    static #errorInterceptors = []
+
+    static interceptors = {
+        error: {
+          use(fn){
+            NeoFetch.#errorInterceptors.push(fn)
+          }  
+
+        }
+    }
+
     static #buildUrl(url,params=[]){
         
         const searchParams = new URLSearchParams()
@@ -44,8 +55,21 @@ export class NeoFetch{
         try{
             const contentType = response.headers.get("content-type") || ""
             data = contentType.includes("application/json") ? await response.json() : await response.text()
-        } catch {
+
+            if(!response.ok){
+               
+                for(const interceptor of this.#errorInterceptors){
+                    await interceptor(error)
+                }
+
+            }
+        } catch (err) {
+            
+            for(const interceptor of this.#errorInterceptors ){
+                await interceptor(err)
+            }
             data = null
+            throw err
         }
 
         if(!response.ok){
