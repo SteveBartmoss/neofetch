@@ -48,6 +48,14 @@ export class NeoFetch{
             data = null
         }
 
+        if(!response.ok){
+            const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
+            error.status = response.status
+            error.data = data
+            error.url = swapurl
+            throw error
+        }
+
         return {data, response}
 
     }
