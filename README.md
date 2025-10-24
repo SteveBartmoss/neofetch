@@ -28,3 +28,14 @@ Neofetch.get(url,options)
 - headers: Objeto que representa los encabezados que se quieren pasar en la peticion, ademas de los comunes que ya estan presentes en todas las peticiones
 
 - options: Objeto que representa opciones adicionales que se quieren argrea a la peticion
+
+
+### Interceptores
+
+Se implemento el uso de interceptores para los errores al momento de realizar peticones http la forma de usarlo es la siguiente: 
+
+```js
+NeoFetch.interceptors.error.use((error) => {
+  console.error("Error global:", error.status, error.message)
+})
+```
