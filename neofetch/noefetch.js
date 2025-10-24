@@ -3,8 +3,20 @@
 export class NeoFetch{
 
     static #errorInterceptors = []
+    static #requestInterceptors = []
+    static #responseInterceptors = []
 
     static interceptors = {
+        request: {
+            use(fn){
+                NeoFetch.#requestInterceptors.push(fn)
+            }
+        },
+        response: {
+            use(fn){
+                NeoFetch.#responseInterceptors.push(fn)
+            }
+        },
         error: {
           use(fn){
             NeoFetch.#errorInterceptors.push(fn)
@@ -46,6 +58,13 @@ export class NeoFetch{
     }
 
     static async #buildRequest(method,url, {body,params,headers, ...options}){
+        
+        let config = {method, url, body, params, headers, ...options}
+
+        for(const interceptor of this.#requestInterceptors){
+            config = await interceptor(config) || config
+        }
+
         const swapurl = this.#buildUrl(url,params)
         
         let data, response
@@ -70,6 +89,12 @@ export class NeoFetch{
                 throw error
 
             }
+
+            for(const interceptor of this.#responseInterceptors){
+                const result = await interceptor({data, response})
+                if (result) ({data, response} = result)
+            }
+            
         } catch (err) {
             
             for(const interceptor of this.#errorInterceptors ){
