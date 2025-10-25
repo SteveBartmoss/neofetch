@@ -65,7 +65,7 @@ export class NeoFetch{
             config = await interceptor(config) || config
         }
 
-        const swapurl = this.#buildUrl(url,params)
+        const swapurl = this.#buildUrl(config.url,config.params)
         
         let data, response
 
