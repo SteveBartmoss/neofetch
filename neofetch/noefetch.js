@@ -70,7 +70,7 @@ export class NeoFetch{
         let data, response
 
         try{
-            response = await fetch(swapurl,this.#buildOptions(method,headers,body,options))
+            response = await fetch(swapurl,this.#buildOptions(config.method,config.headers,config.body,config))
 
             const contentType = response.headers.get("content-type") || ""
             data = contentType.includes("application/json") ? await response.json() : await response.text()
@@ -81,11 +81,6 @@ export class NeoFetch{
                 error.status = response.status
                 error.data = data
                 error.url = swapurl
-               
-                for(const interceptor of this.#errorInterceptors){
-                    await interceptor(error)
-                }
-
                 throw error
 
             }
@@ -100,7 +95,7 @@ export class NeoFetch{
             for(const interceptor of this.#errorInterceptors ){
                 await interceptor(err)
             }
-            data = null
+            
             throw err
         }
 
