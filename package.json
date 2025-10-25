@@ -1,6 +1,6 @@
 {
   "name": "@stevebartmoss/neofetch",
-  "version": "1.0.0",
+  "version": "1.2.3",
   "description": "wraper de fetch para hacer mas simple el uso de la api nativa de js `fetch`",
   "main": "neofetch/neofetch.js",
   "scripts": {
