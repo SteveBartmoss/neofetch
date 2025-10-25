@@ -3,8 +3,20 @@
 export class NeoFetch{
 
     static #errorInterceptors = []
+    static #requestInterceptors = []
+    static #responseInterceptors = []
 
     static interceptors = {
+        request: {
+            use(fn){
+                NeoFetch.#requestInterceptors.push(fn)
+            }
+        },
+        response: {
+            use(fn){
+                NeoFetch.#responseInterceptors.push(fn)
+            }
+        },
         error: {
           use(fn){
             NeoFetch.#errorInterceptors.push(fn)
@@ -46,12 +58,19 @@ export class NeoFetch{
     }
 
     static async #buildRequest(method,url, {body,params,headers, ...options}){
-        const swapurl = this.#buildUrl(url,params)
+        
+        let config = {method, url, body, params, headers, ...options}
+
+        for(const interceptor of this.#requestInterceptors){
+            config = await interceptor(config) || config
+        }
+
+        const swapurl = this.#buildUrl(config.url,config.params)
         
         let data, response
 
         try{
-            response = await fetch(swapurl,this.#buildOptions(method,headers,body,options))
+            response = await fetch(swapurl,this.#buildOptions(config.method,config.headers,config.body,config))
 
             const contentType = response.headers.get("content-type") || ""
             data = contentType.includes("application/json") ? await response.json() : await response.text()
@@ -62,20 +81,21 @@ export class NeoFetch{
                 error.status = response.status
                 error.data = data
                 error.url = swapurl
-               
-                for(const interceptor of this.#errorInterceptors){
-                    await interceptor(error)
-                }
-
                 throw error
 
             }
+
+            for(const interceptor of this.#responseInterceptors){
+                const result = await interceptor({data, response})
+                if (result) ({data, response} = result)
+            }
+            
         } catch (err) {
             
             for(const interceptor of this.#errorInterceptors ){
                 await interceptor(err)
             }
-            data = null
+            
             throw err
         }
 
