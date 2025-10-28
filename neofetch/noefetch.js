@@ -61,13 +61,17 @@ export class NeoFetch{
 
         const controller = new AbortController()
 
-        const abort = () => controller.abort()
+        const abort = () => {
+            controller.abort()
+            signalA?.removeEventListener("abort", abort)
+            signalB?.removeEventListener("abort", abort)
+        }
 
         signalA?.addEventListener("abort", abort)
         signalB?.addEventListener("abort", abort)
 
         return controller.signal
-        
+
     }
 
     static async #buildRequest(method,url, {body,params,headers, timeout, signal, ...options}){
@@ -84,7 +88,7 @@ export class NeoFetch{
         const controller = new AbortController()
         const timer = config.timeout ? setTimeout(() => controller.abort(), config.timeout) : null
 
-        const abortSignal = config.signal ? this.#mergeSignals(config.signal,controller.singal) : controller.signal
+        const abortSignal = config.signal ? this.#mergeSignals(config.signal,controller.signal) : controller.signal
 
         try{
             response = await fetch(swapurl,this.#buildOptions(config.method,config.headers,config.body,{...config, signal: abortSignal}))
@@ -112,6 +116,11 @@ export class NeoFetch{
         } catch (err) {
             
             clearTimeout(timer)
+
+            if(err.name === "AbortError"){
+                err.isTimeout = config.timeout && controller.signal.aborted
+                err.message = err.isTimeout ? `Request timed out after ${config.timeout}ms` : "Request aborted manually"
+            }
 
             for(const interceptor of this.#errorInterceptors ){
                 await interceptor(err)
