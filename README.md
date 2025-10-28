@@ -32,13 +32,44 @@ Neofetch.get(url,options)
 
 ### Interceptores
 
-Se implemento el uso de interceptores para los errores al momento de realizar peticones http la forma de usarlo es la siguiente: 
+Se implemento el uso de diferentes interceptores del tipo errores, request o response al momento de realizar peticones http la forma de usarlos es la siguiente: 
 
 ```js
 NeoFetch.interceptors.error.use((error) => {
   console.error("Error global:", error.status, error.message)
 })
 ```
+
+```js
+NeoFetch.interceptors.request.use(async (config) => {
+  console.log("Enviando petición:", config.url);
+
+  const token = localStorage.getItem("access_token");
+
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`
+    };
+  }
+
+  return config; 
+});
+```
+
+```js
+NeoFetch.interceptors.response.use(async ({ data, response }) => {
+  console.log("Respuesta recibida:", response.status);
+
+  if (Array.isArray(data)) {
+    data = data.map(item => ({ ...item, receivedAt: new Date().toISOString() }));
+  }
+
+  return { data, response };
+});
+
+```
+
 ### Manejo de errores
 
 Se implemento la respuesta de una exception, de esta manera se puede usar un bloque try catch para el manejo de errores, se puede implementar de la siguiente manera
@@ -51,7 +82,7 @@ try{
 }
 ```
 
-El objeto que se devuelte en la exception tiene el siguiente aspecto
+El objeto que se devuelve en la exception tiene el siguiente aspecto
 
 ```js
 error = {
