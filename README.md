@@ -93,4 +93,25 @@ error = {
 }
 ```
 
+### Timeout 
+
+Se implemento el uso de timeout en las peticiones, a continuacion se muestra como se puede usar esta configuracion
+
+```js
+try {
+  const { data } = await NeoFetch.get("https://httpbin.org/delay/5", {
+    timeout: 2000, // 2 segundos
+  });
+  console.log("Respuesta:", data);
+} catch (err) {
+  if (err.isTimeout) {
+    console.error("Timeout alcanzado:", err.message);
+  } else {
+    console.error("Otro error:", err.message);
+  }
+}
+```
+
+De esta forma se puede configurar un tiempo para que la peticion sea cancelada si no se responde a tiempo
+
 
