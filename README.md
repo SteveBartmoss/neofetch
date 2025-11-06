@@ -114,4 +114,31 @@ try {
 
 De esta forma se puede configurar un tiempo para que la peticion sea cancelada si no se responde a tiempo
 
+Tambien se puede usar un AbortController manual, en caso de necesitar implementar la cancelacion desde alguna parte diferente
 
+```js
+const controller = new AbortController();
+
+NeoFetch.get("https://httpbin.org/delay/10", { signal: controller.signal })
+  .then(({ data }) => console.log("✅ Completado:", data))
+  .catch(err => {
+    if (err.name === "AbortError") {
+      console.log("🚫 Petición cancelada manualmente");
+    }
+  });
+
+// Cancelar manualmente después de 2 segundos
+setTimeout(() => controller.abort(), 2000);
+```
+
+Se puede capturar un error de tipo timeout, con la siguiente condfiguracion
+
+```js
+NeoFetch.interceptors.error.use(async (err) => {
+  if (err.name === "AbortError") {
+    console.warn("🧩 Petición abortada:", err.message);
+  } else {
+    console.error("🚨 Error HTTP:", err.status, err.message);
+  }
+});
+```
