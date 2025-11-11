@@ -2,6 +2,24 @@
 
 export class NeoFetch{
 
+    static #globalConfig = {
+        baseUrl: "",
+        headers: {},
+        timeout: 0,
+    }
+
+    constructor(customConfig = {}){
+        this.config = {...NeoFetch.#globalConfig, ...customConfig}
+    }
+
+    static config(globalConfig = {}) {
+        Object.assign(this.#globalConfig, globalConfig)
+    }
+
+    static create(customConfig = {}){
+        return new NeoFetch(customConfig)
+    }
+
     static #errorInterceptors = []
     static #requestInterceptors = []
     static #responseInterceptors = []
