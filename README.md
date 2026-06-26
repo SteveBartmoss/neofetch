@@ -32,13 +32,44 @@ Neofetch.get(url,options)
 
 ### Interceptores
 
-Se implemento el uso de interceptores para los errores al momento de realizar peticones http la forma de usarlo es la siguiente: 
+Se implemento el uso de diferentes interceptores del tipo errores, request o response al momento de realizar peticones http la forma de usarlos es la siguiente: 
 
 ```js
 NeoFetch.interceptors.error.use((error) => {
   console.error("Error global:", error.status, error.message)
 })
 ```
+
+```js
+NeoFetch.interceptors.request.use(async (config) => {
+  console.log("Enviando petición:", config.url);
+
+  const token = localStorage.getItem("access_token");
+
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`
+    };
+  }
+
+  return config; 
+});
+```
+
+```js
+NeoFetch.interceptors.response.use(async ({ data, response }) => {
+  console.log("Respuesta recibida:", response.status);
+
+  if (Array.isArray(data)) {
+    data = data.map(item => ({ ...item, receivedAt: new Date().toISOString() }));
+  }
+
+  return { data, response };
+});
+
+```
+
 ### Manejo de errores
 
 Se implemento la respuesta de una exception, de esta manera se puede usar un bloque try catch para el manejo de errores, se puede implementar de la siguiente manera
@@ -51,7 +82,7 @@ try{
 }
 ```
 
-El objeto que se devuelte en la exception tiene el siguiente aspecto
+El objeto que se devuelve en la exception tiene el siguiente aspecto
 
 ```js
 error = {
@@ -62,4 +93,52 @@ error = {
 }
 ```
 
+### Timeout 
 
+Se implemento el uso de timeout en las peticiones, a continuacion se muestra como se puede usar esta configuracion
+
+```js
+try {
+  const { data } = await NeoFetch.get("https://httpbin.org/delay/5", {
+    timeout: 2000, // 2 segundos
+  });
+  console.log("Respuesta:", data);
+} catch (err) {
+  if (err.isTimeout) {
+    console.error("Timeout alcanzado:", err.message);
+  } else {
+    console.error("Otro error:", err.message);
+  }
+}
+```
+
+De esta forma se puede configurar un tiempo para que la peticion sea cancelada si no se responde a tiempo
+
+Tambien se puede usar un AbortController manual, en caso de necesitar implementar la cancelacion desde alguna parte diferente
+
+```js
+const controller = new AbortController();
+
+NeoFetch.get("https://httpbin.org/delay/10", { signal: controller.signal })
+  .then(({ data }) => console.log("✅ Completado:", data))
+  .catch(err => {
+    if (err.name === "AbortError") {
+      console.log("🚫 Petición cancelada manualmente");
+    }
+  });
+
+// Cancelar manualmente después de 2 segundos
+setTimeout(() => controller.abort(), 2000);
+```
+
+Se puede capturar un error de tipo timeout, con la siguiente condfiguracion
+
+```js
+NeoFetch.interceptors.error.use(async (err) => {
+  if (err.name === "AbortError") {
+    console.warn("🧩 Petición abortada:", err.message);
+  } else {
+    console.error("🚨 Error HTTP:", err.status, err.message);
+  }
+});
+```

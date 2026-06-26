@@ -57,9 +57,26 @@ export class NeoFetch{
         }
     }
 
-    static async #buildRequest(method,url, {body,params,headers, ...options}){
+    static #mergeSignals(signalA, signalB){
+
+        const controller = new AbortController()
+
+        const abort = () => {
+            controller.abort()
+            signalA?.removeEventListener("abort", abort)
+            signalB?.removeEventListener("abort", abort)
+        }
+
+        signalA?.addEventListener("abort", abort)
+        signalB?.addEventListener("abort", abort)
+
+        return controller.signal
+
+    }
+
+    static async #buildRequest(method,url, {body,params,headers, timeout, signal, ...options}){
         
-        let config = {method, url, body, params, headers, ...options}
+        let config = {method, url, body, params, headers,timeout, signal, ...options}
 
         for(const interceptor of this.#requestInterceptors){
             config = await interceptor(config) || config
@@ -68,9 +85,15 @@ export class NeoFetch{
         const swapurl = this.#buildUrl(config.url,config.params)
         
         let data, response
+        const controller = new AbortController()
+        const timer = config.timeout ? setTimeout(() => controller.abort(), config.timeout) : null
+
+        const abortSignal = config.signal ? this.#mergeSignals(config.signal,controller.signal) : controller.signal
 
         try{
-            response = await fetch(swapurl,this.#buildOptions(config.method,config.headers,config.body,config))
+            response = await fetch(swapurl,this.#buildOptions(config.method,config.headers,config.body,{...config, signal: abortSignal}))
+
+            clearTimeout(timer)
 
             const contentType = response.headers.get("content-type") || ""
             data = contentType.includes("application/json") ? await response.json() : await response.text()
@@ -92,6 +115,13 @@ export class NeoFetch{
             
         } catch (err) {
             
+            clearTimeout(timer)
+
+            if(err.name === "AbortError"){
+                err.isTimeout = config.timeout && controller.signal.aborted
+                err.message = err.isTimeout ? `Request timed out after ${config.timeout}ms` : "Request aborted manually"
+            }
+
             for(const interceptor of this.#errorInterceptors ){
                 await interceptor(err)
             }
