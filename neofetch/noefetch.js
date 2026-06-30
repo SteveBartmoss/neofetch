@@ -1,177 +1,76 @@
+import { NeoFetchClient } from "../neofetchClient"
 
 
 export class NeoFetch {
 
-    #baseUrl = ''
-    #defaultHeaders = {}
-    #timeout = 0
+    static #instance = null
 
-    #errorInterceptors = []
-    #requestInterceptors = []
-    #responseInterceptors = []
-
-    constructor(baseUrl = '', defaultHeaders = {}, timeout = 0,
-    ) {
-        this.#baseUrl = baseUrl
-        this.#defaultHeaders = defaultHeaders
-        this.#timeout = timeout
-    }
-
-    get interceptors() {
-
-        return {
-            request: {
-                use: (fn) => this.#requestInterceptors.push(fn)
-            },
-            response: {
-                use: (fn) => this.#responseInterceptors.push(fn)
-            },
-            error: {
-                use: (fn) => this.#errorInterceptors.push(fn)
-            }
+    static #getInstance() {
+        if(!NeoFetch.#instance) {
+            NeoFetch.#instance = new NeoFetchClient()
         }
 
+        return NeoFetch.#instance
+
     }
 
-    #buildUrl(url, params = []) {
-
-        const searchParams = new URLSearchParams()
-
-        params.forEach(({ key, value }) => searchParams.append(key, value))
-
-        return `${this.#baseUrl}${url}?${searchParams.toString()}`
-    }
-
-    #buildOptions(method, headers, body, options) {
-
-        const mergedHeaders = { ...this.#defaultHeaders, ...headers }
-
-        switch (method) {
-            case "GET":
-            case "DELETE":
-                return {
-                    method,
-                    headers: mergedHeaders,
-                    ...options
-                }
-            case "POST":
-            case "PUT":
-            case "PATCH":
-                return {
-                    method,
-                    headers: { "Content-Type": "application/json", ...mergedHeaders },
-                    body: body ? JSON.stringify(body) : undefined,
-                    ...options
-                }
-
+    static interceptors = {
+        request: {
+            use(fn) {
+                NeoFetch.#getInstance.interceptors.request.use(fn)
+            }
+        },
+        response: {
+            use(fn) {
+                NeoFetch.#getInstance.interceptors.response.use(fn)
+            }
+        },
+        error: {
+            use(fn) {
+                NeoFetch.#getInstance.interceptors.error.use(fn)
+            }
         }
     }
 
-    #mergeSignals(signalA, signalB) {
+    static configure(config = {}) {
 
-        const controller = new AbortController()
+        const instance = NeoFetch.#getInstance()
 
-        const abort = () => {
-            controller.abort()
-            signalA?.removeEventListener("abort", abort)
-            signalB?.removeEventListener("abort", abort)
-        }
-
-        signalA?.addEventListener("abort", abort)
-        signalB?.addEventListener("abort", abort)
-
-        return controller.signal
+        NeoFetch.#instance = new NeoFetch(
+            config.baseUrl || '',
+            config.defaultHeaders || {},
+            config.timeout || 0,
+        )
 
     }
 
-    async #buildRequest(method, url, { body, params, headers, timeout, signal, ...options }) {
+    static async get(url, options = {}) {
 
-        let config = { method, url, body, params, headers, timeout, signal, ...options }
-
-        for (const interceptor of this.#requestInterceptors) {
-            config = await interceptor(config) || config
-        }
-
-        config.timeout = config.timeout ?? this.#timeout
-
-        const swapurl = this.#buildUrl(config.url, config.params)
-
-        let data, response
-        const controller = new AbortController()
-        const timer = config.timeout ? setTimeout(() => controller.abort(), config.timeout) : null
-
-        const abortSignal = config.signal ? this.#mergeSignals(config.signal, controller.signal) : controller.signal
-
-        try {
-            response = await fetch(swapurl, this.#buildOptions(config.method, config.headers, config.body, { ...config, signal: abortSignal }))
-
-            clearTimeout(timer)
-
-            const contentType = response.headers.get("content-type") || ""
-            data = contentType.includes("application/json") ? await response.json() : await response.text()
-
-            if (!response.ok) {
-
-                const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
-                error.status = response.status
-                error.data = data
-                error.url = swapurl
-                throw error
-
-            }
-
-            for (const interceptor of this.#responseInterceptors) {
-                const result = await interceptor({ data, response })
-                if (result) ({ data, response } = result)
-            }
-
-        } catch (err) {
-
-            clearTimeout(timer)
-
-            if (err.name === "AbortError") {
-                err.isTimeout = config.timeout && controller.signal.aborted
-                err.message = err.isTimeout ? `Request timed out after ${config.timeout}ms` : "Request aborted manually"
-            }
-
-            for (const interceptor of this.#errorInterceptors) {
-                await interceptor(err)
-            }
-
-            throw err
-        }
-
-        return { data, response }
+        return NeoFetch.#getInstance().get(url, options)
 
     }
 
-    async get(url, options = {}) {
+    static async post(url, options = {}) {
 
-        return this.#buildRequest("GET", url, options)
-
-    }
-
-    async post(url, options = {}) {
-
-        return this.#buildRequest("POST", url, options)
+        return NeoFetch.#getInstance().post(url, options)
 
     }
 
-    async put(url, options = {}) {
+    static async put(url, options = {}) {
 
-        return this.#buildRequest("PUT", url, options)
-
-    }
-
-    async patch(url, options = {}) {
-
-        return this.#buildRequest("PATCH", url, options)
+        return NeoFetch.#getInstance().put(url, options)
 
     }
 
-    async delete(url, options = {}) {
+    static async patch(url, options = {}) {
 
-        return this.#buildRequest("DELETE", url, options)
+        return NeoFetch.#getInstance().patch(url,options)
+
+    }
+
+    static async delete(url, options = {}) {
+
+        return NeoFetch.#getInstance().delete(url, options)
 
     }
 }
