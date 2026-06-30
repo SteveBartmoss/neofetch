@@ -9,17 +9,17 @@ export class FastFetch{
     static interceptors = {
         request: {
             use(fn){
-                NeoFetch.#requestInterceptors.push(fn)
+                FastFetch.#requestInterceptors.push(fn)
             }
         },
         response: {
             use(fn){
-                NeoFetch.#responseInterceptors.push(fn)
+                FastFetch.#responseInterceptors.push(fn)
             }
         },
         error: {
           use(fn){
-            NeoFetch.#errorInterceptors.push(fn)
+            FastFetch.#errorInterceptors.push(fn)
           }  
 
         }
