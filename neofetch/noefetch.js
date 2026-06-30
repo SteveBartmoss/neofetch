@@ -4,7 +4,7 @@ export class NeoFetch {
 
     #baseUrl = ''
     #defaultHeaders = {}
-    #timeOut = 0
+    #timeout = 0
 
     #errorInterceptors = []
     #requestInterceptors = []
@@ -92,7 +92,7 @@ export class NeoFetch {
             config = await interceptor(config) || config
         }
 
-        config.timeout = config.timeout ?? this.#timeOut
+        config.timeout = config.timeout ?? this.#timeout
 
         const swapurl = this.#buildUrl(config.url, config.params)
 
