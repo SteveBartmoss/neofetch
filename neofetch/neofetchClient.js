@@ -129,7 +129,7 @@ export class NeoFetchClient {
 
             clearTimeout(timer)
 
-            if(err.name = "AbortError"){
+            if(err.name === "AbortError"){
                 err.isTimeout = config.timeout && controller.signal.aborted
                 err.message = err.isTimeout ? `Request timed out after ${config.timeout}ms` : "Request aborted manually"
             }
