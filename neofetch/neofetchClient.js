@@ -166,7 +166,7 @@ export class NeoFetchClient {
 
     async delete(url, options={}) {
 
-        return this.#buildRequest("DELETE", url. options)
+        return this.#buildRequest("DELETE", url, options)
 
     }
     
