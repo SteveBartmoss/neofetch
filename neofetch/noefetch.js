@@ -1,4 +1,4 @@
-import { NeoFetchClient } from "../neofetchClient"
+import { NeoFetchClient } from "./neofetchClient"
 
 
 export class NeoFetch {
