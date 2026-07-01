@@ -34,8 +34,6 @@ export class NeoFetch {
 
     static configure(config = {}) {
 
-        const instance = NeoFetch.#getInstance()
-
         NeoFetch.#instance = new NeoFetch(
             config.baseUrl || '',
             config.defaultHeaders || {},
