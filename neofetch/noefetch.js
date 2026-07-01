@@ -17,17 +17,17 @@ export class NeoFetch {
     static interceptors = {
         request: {
             use(fn) {
-                NeoFetch.#getInstance.interceptors.request.use(fn)
+                NeoFetch.#getInstance().interceptors.request.use(fn)
             }
         },
         response: {
             use(fn) {
-                NeoFetch.#getInstance.interceptors.response.use(fn)
+                NeoFetch.#getInstance().interceptors.response.use(fn)
             }
         },
         error: {
             use(fn) {
-                NeoFetch.#getInstance.interceptors.error.use(fn)
+                NeoFetch.#getInstance().interceptors.error.use(fn)
             }
         }
     }
