@@ -3,7 +3,7 @@
 export class NeoFetchClient {
 
     #baseUrl = ''
-    #defaulHeaders = {}
+    #defaultHeaders  = {}
     #timeout = 0
 
     #errorInterceptors = []
@@ -12,7 +12,7 @@ export class NeoFetchClient {
 
     constructor(baseUrl = '', defaultHeaders = {}, timeout = 0,){
         this.#baseUrl = baseUrl
-        this.#defaulHeaders = defaultHeaders
+        this.#defaultHeaders  = defaultHeaders
         this.#timeout = timeout
     }
 
@@ -43,7 +43,7 @@ export class NeoFetchClient {
 
     #buildOptions(method,headers, body, options) {
 
-        const mergedHeaders = {...this.#defaulHeaders, ...headers}
+        const mergedHeaders = {...this.#defaultHeaders , ...headers}
 
         switch (method) {
 
