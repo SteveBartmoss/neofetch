@@ -7,7 +7,6 @@
   "exports": {
     ".": "./index.js",
     "./neofetch": "./neofetch/neofetch.js",
-    "./fastfetch": "./neofetch/fastfetch.js",
     "./neofetchClient": "./neofetch/neofetchClient.js"
   },
   "scripts": {
