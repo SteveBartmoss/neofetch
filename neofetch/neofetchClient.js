@@ -154,7 +154,7 @@ export class NeoFetchClient {
 
     async post(url, options={}){
 
-        return this.#buildOptions("POST", url, options)
+        return this.#buildRequest("POST", url, options)
 
     }
 
