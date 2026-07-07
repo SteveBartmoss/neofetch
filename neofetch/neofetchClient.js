@@ -1,3 +1,4 @@
+import { HttpError } from "./errors/httpError"
 
 
 export class NeoFetchClient {
@@ -138,7 +139,7 @@ export class NeoFetchClient {
                 await interceptor(err)
             }
 
-            throw err
+            throw new HttpError(err.message,err.status,config, url)
 
         }
 
