@@ -142,3 +142,20 @@ NeoFetch.interceptors.error.use(async (err) => {
   }
 });
 ```
+
+# NeofetchClient
+
+Ahora esta disponible una nueva clase instanciable, para permitir configuracion por cada instancia
+
+### configuracion
+
+Cuando se crea una nueva instancia del cliente se pueden pasar los siguiente argumentos
+
+```js
+const api = new NeoFetch(baseUrl,defautlHeaders, timeout);
+```
+
+- baseUrl: Es el contenido fijo en la url, por ejemplo local:host, permitiendp solo usar una url corta en los metodos get, post,...etc
+- defautlHeaders: Los headers que se quieren mandar en todas las peticiones, por ejemplo application/json, auth etc
+- timeout: La cantidad de tiempo hasta que se cancele la peticion por tiempo de espera
+
