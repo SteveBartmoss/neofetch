@@ -51,18 +51,19 @@ export class NeoFetchClient {
             case "GET":
             case "DELETE":
                 return {
+                    ...options,
                     method,
                     headers: mergedHeaders,
-                    ...options
+                    
                 }
             case "POST":
             case "PUT":
             case "PATCH":
                 return {
+                    ...options,
                     method,
                     headers: {"Content-Type": "application/json", ...mergedHeaders},
                     body: body ? JSON.stringify(body) : undefined,
-                    ...options
                 }
         }
     }
