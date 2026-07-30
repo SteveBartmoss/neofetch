@@ -32,6 +32,25 @@ export class NeoFetchClient {
         }
     }
 
+    #serializeBody(body,headers){
+        if(body){
+            return undefined
+        }
+        if(
+            body instanceof FormData || 
+            body instanceof Blob ||
+            body instanceof URLSearchParams ||
+            typeof body === "string"
+        ) {
+            return body
+        }
+
+        headers["Content-Type"] ??= "application/json"
+
+        return JSON.stringify(body)
+        
+    }
+
     #buildUrl(url, params=[]){
 
         const searchParams = new URLSearchParams()
