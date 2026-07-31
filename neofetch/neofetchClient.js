@@ -33,7 +33,7 @@ export class NeoFetchClient {
     }
 
     #serializeBody(body,headers){
-        if(body){
+        if(!body){
             return undefined
         }
         if(
@@ -81,8 +81,8 @@ export class NeoFetchClient {
                 return {
                     ...options,
                     method,
-                    headers: {"Content-Type": "application/json", ...mergedHeaders},
-                    body: body ? JSON.stringify(body) : undefined,
+                    headers: mergedHeaders,
+                    body: this.#serializeBody(body,headers),
                 }
         }
     }
